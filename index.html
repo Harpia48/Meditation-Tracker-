@@ -1,54 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Meditation Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      text-align: center;
-      padding: 40px;
-      background: #f4f4f4;
-    }
-    h1 { margin-bottom: 10px; }
-    button {
-      font-size: 20px;
-      padding: 15px 30px;
-      margin: 10px;
-      border-radius: 12px;
-      border: none;
-      background: black;
-      color: white;
-    }
-    .stats {
-      margin-top: 30px;
-      font-size: 18px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Meditation Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  text-align: center;
+  padding: 20px;
+  background: #f4f4f4;
+}
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 12px;
+  border: none;
+  background: black;
+  color: white;
+}
+input, textarea {
+  width: 90%;
+  padding: 10px;
+  margin-top: 10px;
+}
+.calendar-day {
+  padding: 6px;
+  margin: 4px;
+  display: inline-block;
+  background: #ddd;
+  border-radius: 8px;
+  font-size: 12px;
+}
+</style>
 </head>
+
 <body>
 
 <h1>Meditation</h1>
-<p id="timer">00:00</p>
 
+<p id="timer">00:00</p>
 <button onclick="startTimer()">Start</button>
 <button onclick="stopTimer()">Stop</button>
 
-<div class="stats">
-  <p>Total Minutes: <span id="total">0</span></p>
-  <p>Sessions: <span id="sessions">0</span></p>
-</div>
+<h3>Add Note</h3>
+<textarea id="noteInput" placeholder="How was your session?"></textarea>
+<br>
+<button onclick="saveNote()">Save Note</button>
+
+<h3>Today</h3>
+<p id="todayStats"></p>
+
+<h3>Calendar</h3>
+<div id="calendar"></div>
 
 <script>
+
 let startTime;
 let timerInterval;
 
-let totalMinutes = localStorage.getItem("totalMinutes") || 0;
-let sessions = localStorage.getItem("sessions") || 0;
+let data = JSON.parse(localStorage.getItem("meditationData")) || {};
 
-document.getElementById("total").innerText = totalMinutes;
-document.getElementById("sessions").innerText = sessions;
+function todayKey() {
+  return new Date().toISOString().split("T")[0];
+}
 
 function startTimer() {
   startTime = Date.now();
@@ -70,15 +87,63 @@ function stopTimer() {
   let elapsed = Date.now() - startTime;
   let minutes = Math.floor(elapsed / 60000);
 
-  totalMinutes = parseInt(totalMinutes) + minutes;
-  sessions = parseInt(sessions) + 1;
+  let key = todayKey();
+  if (!data[key]) {
+    data[key] = { minutes: 0, sessions: 0, notes: [] };
+  }
 
-  localStorage.setItem("totalMinutes", totalMinutes);
-  localStorage.setItem("sessions", sessions);
+  data[key].minutes += minutes;
+  data[key].sessions += 1;
 
-  document.getElementById("total").innerText = totalMinutes;
-  document.getElementById("sessions").innerText = sessions;
+  localStorage.setItem("meditationData", JSON.stringify(data));
+  render();
 }
+
+function saveNote() {
+  let note = document.getElementById("noteInput").value;
+  let key = todayKey();
+
+  if (!data[key]) {
+    data[key] = { minutes: 0, sessions: 0, notes: [] };
+  }
+
+  data[key].notes.push(note);
+  document.getElementById("noteInput").value = "";
+
+  localStorage.setItem("meditationData", JSON.stringify(data));
+  render();
+}
+
+function render() {
+  let key = todayKey();
+  let today = data[key];
+
+  if (today) {
+    document.getElementById("todayStats").innerText =
+      "Minutes: " + today.minutes +
+      " | Sessions: " + today.sessions +
+      " | Notes: " + today.notes.length;
+  } else {
+    document.getElementById("todayStats").innerText = "No sessions today";
+  }
+
+  renderCalendar();
+}
+
+function renderCalendar() {
+  let calendarDiv = document.getElementById("calendar");
+  calendarDiv.innerHTML = "";
+
+  Object.keys(data).sort().forEach(date => {
+    let day = document.createElement("div");
+    day.className = "calendar-day";
+    day.innerText = date + " (" + data[date].minutes + "m)";
+    calendarDiv.appendChild(day);
+  });
+}
+
+render();
+
 </script>
 
 </body>
