@@ -13,7 +13,12 @@ body {
   background: #f5f5f5;
 }
 
-h1 { margin-bottom: 5px; }
+input {
+  padding: 8px;
+  font-size: 16px;
+  width: 100px;
+  text-align: center;
+}
 
 button {
   font-size: 16px;
@@ -56,16 +61,16 @@ textarea {
 .stats {
   margin-top: 15px;
 }
-
 </style>
 </head>
 
 <body>
 
 <h1>Meditation</h1>
-<p id="timer">00:00</p>
-<button onclick="startTimer()">Start</button>
-<button onclick="stopTimer()">Stop</button>
+
+<h3>Add Session</h3>
+<input type="number" id="minutesInput" placeholder="Minutes" min="1">
+<button onclick="addMinutes()">Add</button>
 
 <div class="stats">
 <p id="todayStats"></p>
@@ -85,34 +90,16 @@ textarea {
 
 <script>
 
-let startTime;
-let timerInterval;
-let selectedDate = null;
-
 let data = JSON.parse(localStorage.getItem("meditationData")) || {};
+let selectedDate = null;
 
 function todayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
-function startTimer() {
-  startTime = Date.now();
-  timerInterval = setInterval(updateTimer, 1000);
-}
-
-function updateTimer() {
-  let elapsed = Date.now() - startTime;
-  let seconds = Math.floor(elapsed / 1000);
-  let minutes = Math.floor(seconds / 60);
-  seconds %= 60;
-  document.getElementById("timer").innerText =
-    String(minutes).padStart(2,'0') + ":" +
-    String(seconds).padStart(2,'0');
-}
-
-function stopTimer() {
-  clearInterval(timerInterval);
-  let minutes = Math.floor((Date.now() - startTime) / 60000);
+function addMinutes() {
+  let minutes = parseInt(document.getElementById("minutesInput").value);
+  if (!minutes || minutes <= 0) return;
 
   let key = todayKey();
   if (!data[key]) data[key] = { minutes: 0, sessions: 0, notes: [] };
@@ -120,6 +107,7 @@ function stopTimer() {
   data[key].minutes += minutes;
   data[key].sessions += 1;
 
+  document.getElementById("minutesInput").value = "";
   save();
 }
 
