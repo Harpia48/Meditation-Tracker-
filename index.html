@@ -11,9 +11,11 @@ body {
   text-align: center;
   padding: 20px;
   background: #f8f8f8;
-  max-width: 600px;
+  max-width: 650px;
   margin: auto;
 }
+
+h1 { margin-bottom: 10px; }
 
 input, textarea {
   width: 100%;
@@ -73,6 +75,11 @@ button {
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
+
+.stats {
+  margin-top: 10px;
+  font-size: 14px;
+}
 </style>
 </head>
 
@@ -84,12 +91,14 @@ button {
 <input type="number" id="todayMinutes" placeholder="Minutes">
 <button onclick="addToday()">Add</button>
 
-<p id="stats"></p>
+<div class="stats" id="stats"></div>
 
 <h3>Calendar</h3>
+<button onclick="showAllData()">View All Records</button>
 <div class="calendar" id="calendar"></div>
 
 <div id="editorContainer"></div>
+<div id="allDataContainer"></div>
 
 <script>
 
@@ -230,6 +239,36 @@ function deleteDay() {
   delete data[selectedDate];
   document.getElementById("editorContainer").innerHTML = "";
   save();
+}
+
+function showAllData() {
+  let container = document.getElementById("allDataContainer");
+  container.innerHTML = "";
+
+  let sorted = Object.keys(data).sort();
+
+  if (sorted.length === 0) {
+    container.innerHTML = "<p>No data yet.</p>";
+    return;
+  }
+
+  let html = "<div class='editor'><h3>All Records</h3>";
+
+  sorted.forEach(date => {
+    let entry = data[date];
+    html += `
+      <div style="margin-bottom:10px;">
+        <strong>${date}</strong><br>
+        Minutes: ${entry.minutes}<br>
+        Sessions: ${entry.sessions}<br>
+        Notes: ${entry.notes || "-"}
+      </div>
+      <hr>
+    `;
+  });
+
+  html += "</div>";
+  container.innerHTML = html;
 }
 
 function render() {
