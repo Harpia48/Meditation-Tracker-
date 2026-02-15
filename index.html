@@ -102,18 +102,28 @@ button {
 
 <script>
 
-let data = JSON.parse(localStorage.getItem("meditationData")) || {};
-let selectedDate = null;
+// -------- Local Date Formatter (NO UTC BUG) --------
+function formatDateLocal(date) {
+  let year = date.getFullYear();
+  let month = String(date.getMonth() + 1).padStart(2, '0');
+  let day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function todayKey() {
-  return new Date().toISOString().split("T")[0];
+  return formatDateLocal(new Date());
 }
+
+// -------- Storage --------
+let data = JSON.parse(localStorage.getItem("meditationData")) || {};
+let selectedDate = null;
 
 function save() {
   localStorage.setItem("meditationData", JSON.stringify(data));
   render();
 }
 
+// -------- Add Today --------
 function addToday() {
   let minutes = parseInt(document.getElementById("todayMinutes").value);
   if (!minutes) return;
@@ -128,12 +138,13 @@ function addToday() {
   save();
 }
 
+// -------- Streak --------
 function calculateStreak() {
   let streak = 0;
   let d = new Date();
 
   while (true) {
-    let key = d.toISOString().split("T")[0];
+    let key = formatDateLocal(d);
     if (data[key] && data[key].minutes > 0) {
       streak++;
       d.setDate(d.getDate() - 1);
@@ -142,6 +153,7 @@ function calculateStreak() {
   return streak;
 }
 
+// -------- Monthly Total --------
 function monthlyMinutes() {
   let now = new Date();
   let total = 0;
@@ -156,6 +168,7 @@ function monthlyMinutes() {
   return total;
 }
 
+// -------- Calendar --------
 function renderCalendar() {
   let cal = document.getElementById("calendar");
   cal.innerHTML = "";
@@ -181,7 +194,7 @@ function renderCalendar() {
 
   for (let d = 1; d <= daysInMonth; d++) {
     let date = new Date(year, month, d);
-    let key = date.toISOString().split("T")[0];
+    let key = formatDateLocal(date);
 
     let div = document.createElement("div");
     div.className = "day";
@@ -201,6 +214,7 @@ function renderCalendar() {
   }
 }
 
+// -------- Editor --------
 function openEditor(key, element) {
   selectedDate = key;
 
@@ -241,6 +255,7 @@ function deleteDay() {
   save();
 }
 
+// -------- View All Records --------
 function showAllData() {
   let container = document.getElementById("allDataContainer");
   container.innerHTML = "";
@@ -271,6 +286,7 @@ function showAllData() {
   container.innerHTML = html;
 }
 
+// -------- Render --------
 function render() {
   document.getElementById("stats").innerText =
     "Streak: " + calculateStreak() +
