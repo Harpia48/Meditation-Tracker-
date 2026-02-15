@@ -10,56 +10,68 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   text-align: center;
   padding: 20px;
-  background: #f5f5f5;
+  background: #f8f8f8;
+  max-width: 600px;
+  margin: auto;
 }
 
-input {
+input, textarea {
+  width: 100%;
   padding: 8px;
-  font-size: 16px;
-  width: 100px;
-  text-align: center;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
 button {
-  font-size: 16px;
-  padding: 8px 16px;
-  margin: 5px;
-  border-radius: 10px;
+  padding: 8px 14px;
+  margin: 4px;
+  border-radius: 8px;
   border: none;
   background: black;
   color: white;
-}
-
-textarea {
-  width: 90%;
-  padding: 10px;
-  margin-top: 10px;
+  cursor: pointer;
 }
 
 .calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 6px;
   margin-top: 15px;
 }
 
-.day {
-  padding: 10px;
-  border-radius: 8px;
+.weekday {
   font-size: 12px;
+  font-weight: bold;
+  opacity: 0.6;
+}
+
+.day {
+  padding: 12px 0;
+  border-radius: 8px;
+  font-size: 14px;
   cursor: pointer;
+  background: #eaeaea;
 }
 
 .low { background: #d6eaff; }
 .medium { background: #5bbcff; color:white; }
 .high { background: #005fa3; color:white; }
 
+.today {
+  border: 2px solid black;
+}
+
 .selected {
   outline: 3px solid black;
 }
 
-.stats {
+.editor {
   margin-top: 15px;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -68,25 +80,16 @@ textarea {
 
 <h1>Meditation</h1>
 
-<h3>Add Session</h3>
-<input type="number" id="minutesInput" placeholder="Minutes" min="1">
-<button onclick="addMinutes()">Add</button>
+<h3>Add Session Today</h3>
+<input type="number" id="todayMinutes" placeholder="Minutes">
+<button onclick="addToday()">Add</button>
 
-<div class="stats">
-<p id="todayStats"></p>
-<p id="streak"></p>
-<p id="monthlyTotal"></p>
-</div>
-
-<h3>Add Note</h3>
-<textarea id="noteInput" placeholder="Reflection..."></textarea>
-<br>
-<button onclick="saveNote()">Save Note</button>
+<p id="stats"></p>
 
 <h3>Calendar</h3>
 <div class="calendar" id="calendar"></div>
 
-<div id="dayDetails"></div>
+<div id="editorContainer"></div>
 
 <script>
 
@@ -97,35 +100,23 @@ function todayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
-function addMinutes() {
-  let minutes = parseInt(document.getElementById("minutesInput").value);
-  if (!minutes || minutes <= 0) return;
+function save() {
+  localStorage.setItem("meditationData", JSON.stringify(data));
+  render();
+}
+
+function addToday() {
+  let minutes = parseInt(document.getElementById("todayMinutes").value);
+  if (!minutes) return;
 
   let key = todayKey();
-  if (!data[key]) data[key] = { minutes: 0, sessions: 0, notes: [] };
+  if (!data[key]) data[key] = { minutes: 0, sessions: 0, notes: "" };
 
   data[key].minutes += minutes;
   data[key].sessions += 1;
 
-  document.getElementById("minutesInput").value = "";
+  document.getElementById("todayMinutes").value = "";
   save();
-}
-
-function saveNote() {
-  let note = document.getElementById("noteInput").value;
-  if (!note) return;
-
-  let key = todayKey();
-  if (!data[key]) data[key] = { minutes: 0, sessions: 0, notes: [] };
-
-  data[key].notes.push(note);
-  document.getElementById("noteInput").value = "";
-  save();
-}
-
-function save() {
-  localStorage.setItem("meditationData", JSON.stringify(data));
-  render();
 }
 
 function calculateStreak() {
@@ -144,13 +135,12 @@ function calculateStreak() {
 
 function monthlyMinutes() {
   let now = new Date();
-  let month = now.getMonth();
-  let year = now.getFullYear();
   let total = 0;
 
   Object.keys(data).forEach(date => {
     let d = new Date(date);
-    if (d.getMonth() === month && d.getFullYear() === year)
+    if (d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear())
       total += data[date].minutes;
   });
 
@@ -161,6 +151,14 @@ function renderCalendar() {
   let cal = document.getElementById("calendar");
   cal.innerHTML = "";
 
+  let weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  weekdays.forEach(w => {
+    let div = document.createElement("div");
+    div.className = "weekday";
+    div.innerText = w;
+    cal.appendChild(div);
+  });
+
   let now = new Date();
   let year = now.getFullYear();
   let month = now.getMonth();
@@ -169,8 +167,7 @@ function renderCalendar() {
   let daysInMonth = new Date(year, month+1, 0).getDate();
 
   for (let i = 0; i < firstDay; i++) {
-    let empty = document.createElement("div");
-    cal.appendChild(empty);
+    cal.appendChild(document.createElement("div"));
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -188,42 +185,57 @@ function renderCalendar() {
       else div.classList.add("high");
     }
 
-    div.onclick = () => selectDay(key, div);
+    if (key === todayKey()) div.classList.add("today");
+
+    div.onclick = () => openEditor(key, div);
     cal.appendChild(div);
   }
 }
 
-function selectDay(key, element) {
+function openEditor(key, element) {
   selectedDate = key;
 
   document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
   element.classList.add("selected");
 
-  let info = data[key];
-  let details = document.getElementById("dayDetails");
+  let entry = data[key] || { minutes: 0, sessions: 0, notes: "" };
 
-  if (info) {
-    details.innerHTML =
-      "<h4>" + key + "</h4>" +
-      "Minutes: " + info.minutes +
-      "<br>Sessions: " + info.sessions +
-      "<br>Notes:<br>" + info.notes.join("<br>");
-  } else {
-    details.innerHTML = "<h4>" + key + "</h4>No data.";
-  }
+  let editor = `
+    <div class="editor">
+      <h3>Edit ${key}</h3>
+      <label>Minutes</label>
+      <input type="number" id="editMinutes" value="${entry.minutes}">
+      <label>Sessions</label>
+      <input type="number" id="editSessions" value="${entry.sessions}">
+      <label>Notes</label>
+      <textarea id="editNotes">${entry.notes}</textarea>
+      <button onclick="saveEdit()">Save</button>
+      <button onclick="deleteDay()">Delete</button>
+    </div>
+  `;
+
+  document.getElementById("editorContainer").innerHTML = editor;
+}
+
+function saveEdit() {
+  let minutes = parseInt(document.getElementById("editMinutes").value) || 0;
+  let sessions = parseInt(document.getElementById("editSessions").value) || 0;
+  let notes = document.getElementById("editNotes").value;
+
+  data[selectedDate] = { minutes, sessions, notes };
+  save();
+}
+
+function deleteDay() {
+  delete data[selectedDate];
+  document.getElementById("editorContainer").innerHTML = "";
+  save();
 }
 
 function render() {
-  let today = data[todayKey()];
-  document.getElementById("todayStats").innerText =
-    today ? "Today: " + today.minutes + " min | " + today.sessions + " sessions"
-          : "No meditation today";
-
-  document.getElementById("streak").innerText =
-    "Current streak: " + calculateStreak() + " days";
-
-  document.getElementById("monthlyTotal").innerText =
-    "This month: " + monthlyMinutes() + " minutes";
+  document.getElementById("stats").innerText =
+    "Streak: " + calculateStreak() +
+    " days | This month: " + monthlyMinutes() + " min";
 
   renderCalendar();
 }
