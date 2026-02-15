@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Meditation Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f4f4f4;
+    }
+    h1 { margin-bottom: 10px; }
+    button {
+      font-size: 20px;
+      padding: 15px 30px;
+      margin: 10px;
+      border-radius: 12px;
+      border: none;
+      background: black;
+      color: white;
+    }
+    .stats {
+      margin-top: 30px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Meditation</h1>
+<p id="timer">00:00</p>
+
+<button onclick="startTimer()">Start</button>
+<button onclick="stopTimer()">Stop</button>
+
+<div class="stats">
+  <p>Total Minutes: <span id="total">0</span></p>
+  <p>Sessions: <span id="sessions">0</span></p>
+</div>
+
+<script>
+let startTime;
+let timerInterval;
+
+let totalMinutes = localStorage.getItem("totalMinutes") || 0;
+let sessions = localStorage.getItem("sessions") || 0;
+
+document.getElementById("total").innerText = totalMinutes;
+document.getElementById("sessions").innerText = sessions;
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  let elapsed = Date.now() - startTime;
+  let seconds = Math.floor(elapsed / 1000);
+  let minutes = Math.floor(seconds / 60);
+  seconds = seconds % 60;
+  document.getElementById("timer").innerText =
+    String(minutes).padStart(2, '0') + ":" +
+    String(seconds).padStart(2, '0');
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  let elapsed = Date.now() - startTime;
+  let minutes = Math.floor(elapsed / 60000);
+
+  totalMinutes = parseInt(totalMinutes) + minutes;
+  sessions = parseInt(sessions) + 1;
+
+  localStorage.setItem("totalMinutes", totalMinutes);
+  localStorage.setItem("sessions", sessions);
+
+  document.getElementById("total").innerText = totalMinutes;
+  document.getElementById("sessions").innerText = sessions;
+}
+</script>
+
+</body>
+</html>
