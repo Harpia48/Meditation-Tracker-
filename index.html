@@ -1,303 +1,488 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Meditation Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  text-align: center;
-  padding: 20px;
-  background: #f8f8f8;
-  max-width: 650px;
-  margin: auto;
-}
-
-h1 { margin-bottom: 10px; }
-
-input, textarea {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  padding: 8px 14px;
-  margin: 4px;
-  border-radius: 8px;
-  border: none;
-  background: black;
-  color: white;
-  cursor: pointer;
-}
-
-.calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-top: 15px;
-}
-
-.weekday {
-  font-size: 12px;
-  font-weight: bold;
-  opacity: 0.6;
-}
-
-.day {
-  padding: 12px 0;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  background: #eaeaea;
-}
-
-.low { background: #d6eaff; }
-.medium { background: #5bbcff; color:white; }
-.high { background: #005fa3; color:white; }
-
-.today {
-  border: 2px solid black;
-}
-
-.selected {
-  outline: 3px solid black;
-}
-
-.editor {
-  margin-top: 15px;
-  padding: 15px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.stats {
-  margin-top: 10px;
-  font-size: 14px;
-}
-</style>
-</head>
-
-<body>
-
-<h1>Meditation</h1>
-
-<h3>Add Session Today</h3>
-<input type="number" id="todayMinutes" placeholder="Minutes">
-<button onclick="addToday()">Add</button>
-
-<div class="stats" id="stats"></div>
-
-<h3>Calendar</h3>
-<button onclick="showAllData()">View All Records</button>
-<div class="calendar" id="calendar"></div>
-
-<div id="editorContainer"></div>
-<div id="allDataContainer"></div>
-
-<script>
-
-// -------- Local Date Formatter (NO UTC BUG) --------
-function formatDateLocal(date) {
-  let year = date.getFullYear();
-  let month = String(date.getMonth() + 1).padStart(2, '0');
-  let day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function todayKey() {
-  return formatDateLocal(new Date());
-}
-
-// -------- Storage --------
-let data = JSON.parse(localStorage.getItem("meditationData")) || {};
-let selectedDate = null;
-
-function save() {
-  localStorage.setItem("meditationData", JSON.stringify(data));
-  render();
-}
-
-// -------- Add Today --------
-function addToday() {
-  let minutes = parseInt(document.getElementById("todayMinutes").value);
-  if (!minutes) return;
-
-  let key = todayKey();
-  if (!data[key]) data[key] = { minutes: 0, sessions: 0, notes: "" };
-
-  data[key].minutes += minutes;
-  data[key].sessions += 1;
-
-  document.getElementById("todayMinutes").value = "";
-  save();
-}
-
-// -------- Streak --------
-function calculateStreak() {
-  let streak = 0;
-  let d = new Date();
-
-  while (true) {
-    let key = formatDateLocal(d);
-    if (data[key] && data[key].minutes > 0) {
-      streak++;
-      d.setDate(d.getDate() - 1);
-    } else break;
-  }
-  return streak;
-}
-
-// -------- Monthly Total --------
-function monthlyMinutes() {
-  let now = new Date();
-  let total = 0;
-
-  Object.keys(data).forEach(date => {
-    let d = new Date(date);
-    if (d.getMonth() === now.getMonth() &&
-        d.getFullYear() === now.getFullYear())
-      total += data[date].minutes;
-  });
-
-  return total;
-}
-
-// -------- Calendar --------
-function renderCalendar() {
-  let cal = document.getElementById("calendar");
-  cal.innerHTML = "";
-
-  let weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  weekdays.forEach(w => {
-    let div = document.createElement("div");
-    div.className = "weekday";
-    div.innerText = w;
-    cal.appendChild(div);
-  });
-
-  let now = new Date();
-  let year = now.getFullYear();
-  let month = now.getMonth();
-
-  let firstDay = new Date(year, month, 1).getDay();
-  let daysInMonth = new Date(year, month+1, 0).getDate();
-
-  for (let i = 0; i < firstDay; i++) {
-    cal.appendChild(document.createElement("div"));
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    let date = new Date(year, month, d);
-    let key = formatDateLocal(date);
-
-    let div = document.createElement("div");
-    div.className = "day";
-    div.innerText = d;
-
-    if (data[key]) {
-      let m = data[key].minutes;
-      if (m < 10) div.classList.add("low");
-      else if (m < 30) div.classList.add("medium");
-      else div.classList.add("high");
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Meditation · local tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
+    body {
+      background: #f5f7fa;
+      padding: 20px 14px 40px;
+      max-width: 700px;
+      margin: 0 auto;
+      color: #1e293b;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .sub {
+      font-size: 0.95rem;
+      color: #475569;
+      margin-bottom: 25px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 12px;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 22px 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.05);
+      border: 1px solid #edf2f7;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, textarea {
+      border: 1px solid #cbd5e1;
+      border-radius: 40px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      background: #f8fafc;
+      outline: none;
+      transition: 0.15s;
+      width: 100%;
+    }
+    input:focus, textarea:focus {
+      border-color: #2563eb;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    textarea {
+      border-radius: 24px;
+      resize: vertical;
+    }
+    button {
+      background: #1e293b;
+      border: none;
+      color: white;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 60px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.1s;
+      border: 1px solid #1e293b;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      white-space: nowrap;
+    }
+    button.small {
+      padding: 8px 18px;
+      background: white;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+    }
+    button.small:hover {
+      background: #f1f5f9;
+    }
+    button.danger {
+      background: white;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .stat-badge {
+      background: #eef2ff;
+      border-radius: 60px;
+      padding: 8px 22px;
+      font-size: 1.2rem;
+      font-weight: 500;
+      display: inline-block;
+      color: #1e3a8a;
+    }
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 12px 0 8px;
+    }
+    .month-nav span {
+      font-size: 1.4rem;
+      font-weight: 550;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin: 10px 0 5px;
+    }
+    .weekday {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      text-align: center;
+      padding: 6px 0;
+    }
+    .day-cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      border-radius: 16px;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.1s;
+      border: 2px solid transparent;
+      user-select: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .day-cell.low { background: #dcfce7; color: #14532d; }
+    .day-cell.medium { background: #a7f3d0; color: #064e3b; }
+    .day-cell.high { background: #2dd4bf; color: #042f2e; }
+    .day-cell.today { border-color: #0f172a; border-width: 2px; background: #ffffff; font-weight: 600; }
+    .day-cell.selected { outline: 3px solid #2563eb; outline-offset: 2px; }
+    .empty-cell { background: transparent; cursor: default; box-shadow: none; }
 
-    if (key === todayKey()) div.classList.add("today");
+    .editor-panel {
+      background: #ffffff;
+      border-radius: 30px;
+      padding: 22px;
+      margin: 20px 0 12px;
+      border: 1px solid #e9eef3;
+    }
+    .all-records {
+      background: #ffffff;
+      border-radius: 30px;
+      padding: 18px;
+      font-size: 0.95rem;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+    }
+    .record-item {
+      padding: 12px 6px;
+      border-bottom: 1px solid #eef2f6;
+    }
+    .flex {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .gap { gap: 8px; }
+    .mt-3 { margin-top: 16px; }
+    .mb-1 { margin-bottom: 6px; }
+    .text-sm { font-size: 0.9rem; color: #334155; }
+    .text-xs { font-size: 0.75rem; color: #64748b; }
+  </style>
+</head>
+<body>
+  <h1>🧘 Meditation</h1>
+  <div class="sub">mindful minutes · local only</div>
 
-    div.onclick = () => openEditor(key, div);
-    cal.appendChild(div);
-  }
-}
-
-// -------- Editor --------
-function openEditor(key, element) {
-  selectedDate = key;
-
-  document.querySelectorAll(".day").forEach(d => d.classList.remove("selected"));
-  element.classList.add("selected");
-
-  let entry = data[key] || { minutes: 0, sessions: 0, notes: "" };
-
-  let editor = `
-    <div class="editor">
-      <h3>Edit ${key}</h3>
-      <label>Minutes</label>
-      <input type="number" id="editMinutes" value="${entry.minutes}">
-      <label>Sessions</label>
-      <input type="number" id="editSessions" value="${entry.sessions}">
-      <label>Notes</label>
-      <textarea id="editNotes">${entry.notes}</textarea>
-      <button onclick="saveEdit()">Save</button>
-      <button onclick="deleteDay()">Delete</button>
+  <!-- quick add -->
+  <div class="card">
+    <div class="card-header">
+      <span>➕ Add session today</span>
     </div>
-  `;
+    <div class="row">
+      <input type="number" id="todayMinutes" placeholder="minutes" min="1" value="10" style="flex:2;">
+      <button id="addTodayBtn" style="flex:1;">Add</button>
+    </div>
+  </div>
 
-  document.getElementById("editorContainer").innerHTML = editor;
-}
+  <!-- stats + streak + month total -->
+  <div class="card" style="padding: 16px 18px;">
+    <div class="flex" style="justify-content: space-between; width: 100%;">
+      <span class="stat-badge" id="streakDisplay">⚡ 0 days</span>
+      <span class="stat-badge" id="monthTotalDisplay">📅 0 min</span>
+    </div>
+  </div>
 
-function saveEdit() {
-  let minutes = parseInt(document.getElementById("editMinutes").value) || 0;
-  let sessions = parseInt(document.getElementById("editSessions").value) || 0;
-  let notes = document.getElementById("editNotes").value;
+  <!-- calendar with month navigation -->
+  <div class="card" style="padding-bottom: 8px;">
+    <div class="month-nav">
+      <button class="small" id="prevMonthBtn">← Prev</button>
+      <span id="monthYearDisplay">May 2025</span>
+      <button class="small" id="nextMonthBtn">Next →</button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid">
+      <!-- weekdays + days injected -->
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+      <button class="small" id="viewAllBtn">📋 All records</button>
+      <button class="small" id="exportCsvBtn">⬇️ Export CSV</button>
+    </div>
+  </div>
 
-  data[selectedDate] = { minutes, sessions, notes };
-  save();
-}
+  <!-- dynamic editor + all data container -->
+  <div id="editorContainer"></div>
+  <div id="allDataContainer"></div>
 
-function deleteDay() {
-  delete data[selectedDate];
-  document.getElementById("editorContainer").innerHTML = "";
-  save();
-}
+  <script>
+    (function() {
+      // ----- data & state -----
+      let data = JSON.parse(localStorage.getItem('meditationData')) || {};
+      let currentYear = new Date().getFullYear();
+      let currentMonth = new Date().getMonth();  // 0-11
+      let selectedDateKey = null;
 
-// -------- View All Records --------
-function showAllData() {
-  let container = document.getElementById("allDataContainer");
-  container.innerHTML = "";
+      // ----- helpers (local date, no UTC shift) -----
+      function formatDateLocal(year, month, day) {
+        return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
 
-  let sorted = Object.keys(data).sort();
+      function todayKey() {
+        const d = new Date();
+        return formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
+      }
 
-  if (sorted.length === 0) {
-    container.innerHTML = "<p>No data yet.</p>";
-    return;
-  }
+      // persist
+      function saveData() {
+        localStorage.setItem('meditationData', JSON.stringify(data));
+        renderAll();
+      }
 
-  let html = "<div class='editor'><h3>All Records</h3>";
+      // ----- streak (current streak up to today) -----
+      function calculateStreak() {
+        let streak = 0;
+        let d = new Date();
+        while (true) {
+          const key = formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
+          if (data[key] && (data[key].minutes || 0) > 0) {
+            streak++;
+            d.setDate(d.getDate() - 1);
+          } else break;
+        }
+        return streak;
+      }
 
-  sorted.forEach(date => {
-    let entry = data[date];
-    html += `
-      <div style="margin-bottom:10px;">
-        <strong>${date}</strong><br>
-        Minutes: ${entry.minutes}<br>
-        Sessions: ${entry.sessions}<br>
-        Notes: ${entry.notes || "-"}
-      </div>
-      <hr>
-    `;
-  });
+      // ----- monthly total (based on currentMonth/currentYear) -----
+      function monthlyTotal() {
+        let total = 0;
+        Object.entries(data).forEach(([key, entry]) => {
+          const [y, m] = key.split('-').map(Number);
+          if (y === currentYear && m-1 === currentMonth) {
+            total += entry.minutes || 0;
+          }
+        });
+        return total;
+      }
 
-  html += "</div>";
-  container.innerHTML = html;
-}
+      // ----- render stats -----
+      function updateStats() {
+        document.getElementById('streakDisplay').innerText = `⚡ ${calculateStreak()} day streak`;
+        document.getElementById('monthTotalDisplay').innerText = `📅 ${monthlyTotal()} min`;
+      }
 
-// -------- Render --------
-function render() {
-  document.getElementById("stats").innerText =
-    "Streak: " + calculateStreak() +
-    " days | This month: " + monthlyMinutes() + " min";
+      // ----- calendar grid -----
+      function renderCalendar() {
+        const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('monthYearDisplay').innerText = `${monthNames[currentMonth]} ${currentYear}`;
 
-  renderCalendar();
-}
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();   // 0 = Sunday
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-render();
+        const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        let html = '';
+        weekdays.forEach(w => html += `<div class="weekday">${w}</div>`);
 
-</script>
+        // empty cells before 1st
+        for (let i = 0; i < firstDay; i++) {
+          html += `<div class="empty-cell"></div>`;
+        }
 
+        for (let d = 1; d <= daysInMonth; d++) {
+          const key = formatDateLocal(currentYear, currentMonth, d);
+          const entry = data[key];
+          let cellClass = 'day-cell';
+          if (entry && entry.minutes) {
+            const m = entry.minutes;
+            if (m < 10) cellClass += ' low';
+            else if (m < 30) cellClass += ' medium';
+            else cellClass += ' high';
+          }
+          if (key === todayKey()) cellClass += ' today';
+          if (key === selectedDateKey) cellClass += ' selected';
+
+          html += `<div class="${cellClass}" data-key="${key}" data-day="${d}">${d}</div>`;
+        }
+
+        document.getElementById('calendarGrid').innerHTML = html;
+
+        // attach click listeners to day cells (skip empty cells)
+        document.querySelectorAll('.day-cell').forEach(cell => {
+          cell.addEventListener('click', (e) => {
+            const key = cell.dataset.key;
+            if (!key) return;
+            // remove selected from others
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+            cell.classList.add('selected');
+            selectedDateKey = key;
+            openEditorForKey(key);
+          });
+        });
+      }
+
+      // ----- open editor for given key -----
+      function openEditorForKey(key) {
+        const entry = data[key] || { minutes: 0, sessions: 0, notes: '' };
+        const container = document.getElementById('editorContainer');
+        container.innerHTML = `
+          <div class="editor-panel">
+            <h3 style="margin-bottom: 10px;">✏️ ${key}</h3>
+            <label class="text-sm">minutes</label>
+            <input type="number" id="editMinutes" value="${entry.minutes || 0}" min="0" step="1">
+            <label class="text-sm mt-3">sessions (count)</label>
+            <input type="number" id="editSessions" value="${entry.sessions || 0}" min="0" step="1">
+            <label class="text-sm mt-3">notes</label>
+            <textarea id="editNotes" rows="2">${entry.notes || ''}</textarea>
+            <div class="flex gap mt-3">
+              <button id="saveEditBtn">💾 Save</button>
+              <button class="danger" id="deleteDayBtn">🗑️ Delete</button>
+              <button class="small" id="closeEditorBtn">Cancel</button>
+            </div>
+          </div>
+        `;
+        document.getElementById('saveEditBtn').addEventListener('click', () => saveEdit(key));
+        document.getElementById('deleteDayBtn').addEventListener('click', () => deleteDay(key));
+        document.getElementById('closeEditorBtn').addEventListener('click', () => {
+          container.innerHTML = '';
+          selectedDateKey = null;
+          document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
+        });
+      }
+
+      function saveEdit(key) {
+        const minutes = parseInt(document.getElementById('editMinutes').value) || 0;
+        const sessions = parseInt(document.getElementById('editSessions').value) || 0;
+        const notes = document.getElementById('editNotes').value;
+        data[key] = { minutes, sessions, notes };
+        saveData();
+        document.getElementById('editorContainer').innerHTML = '';
+        selectedDateKey = key; // keep selection
+      }
+
+      function deleteDay(key) {
+        delete data[key];
+        if (selectedDateKey === key) selectedDateKey = null;
+        document.getElementById('editorContainer').innerHTML = '';
+        saveData();
+      }
+
+      // ----- add today -----
+      function addToday() {
+        const input = document.getElementById('todayMinutes');
+        let minutes = parseInt(input.value);
+        if (isNaN(minutes) || minutes <= 0) minutes = 1;
+        const key = todayKey();
+        if (!data[key]) data[key] = { minutes:0, sessions:0, notes:'' };
+        data[key].minutes = (data[key].minutes || 0) + minutes;
+        data[key].sessions = (data[key].sessions || 0) + 1;
+        input.value = '';
+        saveData();
+        // if today visible in calendar, update
+      }
+
+      // ----- show all records sorted (View All) -----
+      function showAllRecords() {
+        const container = document.getElementById('allDataContainer');
+        const sorted = Object.keys(data).sort().reverse();
+        if (sorted.length === 0) {
+          container.innerHTML = '<div class="all-records">✨ No entries yet.</div>';
+          return;
+        }
+        let html = '<div class="all-records"><h3 style="margin:0 0 10px;">📖 all entries</h3>';
+        sorted.forEach(date => {
+          const e = data[date];
+          html += `<div class="record-item"><strong>${date}</strong> · ${e.minutes || 0} min · ${e.sessions || 0} session(s)<br>`;
+          html += `<span class="text-xs">📝 ${e.notes ? e.notes : '—'}</span></div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+      }
+
+      // ----- export CSV -----
+      function exportCSV() {
+        const headers = ['Date','Minutes','Sessions','Notes'];
+        const rows = [headers];
+        Object.keys(data).sort().forEach(date => {
+          const e = data[date];
+          rows.push([date, e.minutes||0, e.sessions||0, `"${(e.notes||'').replace(/"/g,'""')}"`]);
+        });
+        const csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `meditation_${currentYear}-${currentMonth+1}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      // ----- clear allData container when switching months, etc (optional)-----
+      function hideAllContainer() {
+        document.getElementById('allDataContainer').innerHTML = '';
+      }
+
+      // ----- master render -----
+      function renderAll() {
+        updateStats();
+        renderCalendar();
+
+        // if selectedDateKey still exists, keep editor open? but we can preserve only if key exists in data
+        if (selectedDateKey) {
+          if (data[selectedDateKey]) {
+            openEditorForKey(selectedDateKey);
+          } else {
+            // key no longer in data -> close editor
+            document.getElementById('editorContainer').innerHTML = '';
+            selectedDateKey = null;
+          }
+        } else {
+          document.getElementById('editorContainer').innerHTML = '';
+        }
+      }
+
+      // ----- month navigation -----
+      document.getElementById('prevMonthBtn').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        hideAllContainer();
+        renderAll();
+      });
+      document.getElementById('nextMonthBtn').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        hideAllContainer();
+        renderAll();
+      });
+
+      document.getElementById('addTodayBtn').addEventListener('click', addToday);
+
+      document.getElementById('viewAllBtn').addEventListener('click', () => {
+        showAllRecords();
+      });
+
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        exportCSV();
+      });
+
+      // init
+      renderAll();
+
+      // extra: if user clicks outside, but we keep as is
+      window.todayKey = todayKey; // not needed
+    })();
+  </script>
 </body>
 </html>
