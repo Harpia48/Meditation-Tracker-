@@ -5,357 +5,330 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Meditation · local tracker</title>
   <style>
+    /* === FRESH VISUAL STYLE — DIFFERENCES ARE OBVIOUS === */
     * {
       box-sizing: border-box;
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     body {
-      background: #f5f7fa;
-      padding: 20px 14px 40px;
+      background: #f4f6fb;
+      padding: 18px 14px 30px;
       max-width: 700px;
       margin: 0 auto;
       color: #1e293b;
     }
     h1 {
-      font-size: 2.2rem;
-      font-weight: 500;
-      letter-spacing: -0.5px;
-      color: #0f172a;
-      margin-bottom: 4px;
+      font-size: 2.4rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      background: linear-gradient(145deg, #0f2b3d, #1a4a6f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 2px;
     }
     .sub {
-      font-size: 0.95rem;
-      color: #475569;
-      margin-bottom: 25px;
-      border-bottom: 1px solid #e2e8f0;
+      color: #3a5e7a;
+      font-weight: 400;
+      margin-bottom: 20px;
+      border-bottom: 2px dashed #b7d3e8;
       padding-bottom: 12px;
     }
+    /* cards with distinct shadows */
     .card {
-      background: white;
-      border-radius: 24px;
-      padding: 22px 18px;
-      margin-bottom: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.05);
-      border: 1px solid #edf2f7;
+      background: #ffffffdd;
+      backdrop-filter: blur(4px);
+      border-radius: 32px;
+      padding: 22px 20px;
+      margin-bottom: 22px;
+      box-shadow: 0 15px 30px -10px rgba(0,50,80,0.15), 0 4px 8px rgba(0,20,40,0.05);
+      border: 1px solid rgba(200,220,240,0.6);
     }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    .badge {
+      background: #1e3a5f;
+      color: white;
+      padding: 8px 20px;
+      border-radius: 60px;
       font-weight: 600;
+      font-size: 1.1rem;
+      box-shadow: 0 6px 12px #1e3a5f30;
     }
     .row {
       display: flex;
-      gap: 12px;
-      align-items: center;
+      gap: 14px;
       flex-wrap: wrap;
+      align-items: center;
     }
     input, textarea {
-      border: 1px solid #cbd5e1;
+      border: 1.5px solid #cbd5e1;
       border-radius: 40px;
-      padding: 14px 18px;
+      padding: 14px 20px;
       font-size: 1rem;
-      background: #f8fafc;
+      background: #ffffff;
       outline: none;
-      transition: 0.15s;
       width: 100%;
+      transition: 0.15s;
     }
     input:focus, textarea:focus {
-      border-color: #2563eb;
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 4px #a5c9ff;
     }
-    textarea {
-      border-radius: 24px;
-      resize: vertical;
-    }
+    textarea { border-radius: 28px; }
     button {
-      background: #1e293b;
+      background: #0b2b44;
       border: none;
       color: white;
-      font-weight: 500;
-      padding: 12px 24px;
+      font-weight: 600;
+      padding: 14px 28px;
       border-radius: 60px;
-      font-size: 1rem;
+      font-size: 1.1rem;
       cursor: pointer;
+      box-shadow: 0 8px 16px #0b2b4430;
       transition: 0.1s;
-      border: 1px solid #1e293b;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      border: 1px solid #143e60;
       white-space: nowrap;
     }
     button.small {
-      padding: 8px 18px;
       background: white;
-      color: #1e293b;
-      border: 1px solid #cbd5e1;
-    }
-    button.small:hover {
-      background: #f1f5f9;
-    }
-    button.danger {
-      background: white;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-    }
-    .stat-badge {
-      background: #eef2ff;
-      border-radius: 60px;
-      padding: 8px 22px;
-      font-size: 1.2rem;
+      color: #0b2b44;
+      border: 2px solid #aac7e0;
+      box-shadow: none;
+      padding: 10px 22px;
+      font-size: 1rem;
       font-weight: 500;
-      display: inline-block;
-      color: #1e3a8a;
     }
+    button.small:hover { background: #e4f0fe; }
+    .danger {
+      background: white;
+      color: #b22222;
+      border: 2px solid #fbb5b5;
+      box-shadow: none;
+    }
+    /* month nav — obviously new */
     .month-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin: 12px 0 8px;
+      background: #deecf9;
+      padding: 8px 12px;
+      border-radius: 60px;
+      margin: 12px 0 18px;
     }
     .month-nav span {
-      font-size: 1.4rem;
-      font-weight: 550;
+      font-size: 1.6rem;
+      font-weight: 650;
+      color: #0a3147;
     }
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin: 10px 0 5px;
+      gap: 6px;
+      margin: 8px 0 14px;
     }
     .weekday {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #64748b;
+      font-weight: 700;
+      color: #1f5377;
+      font-size: 0.9rem;
       text-align: center;
-      padding: 6px 0;
     }
     .day-cell {
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f1f5f9;
-      border-radius: 16px;
-      font-weight: 500;
-      font-size: 1rem;
+      background: #eaf1fa;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border: 2px solid transparent;
       cursor: pointer;
       transition: 0.1s;
-      border: 2px solid transparent;
-      user-select: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      box-shadow: 0 4px 6px #b0c7db50;
     }
-    .day-cell.low { background: #dcfce7; color: #14532d; }
-    .day-cell.medium { background: #a7f3d0; color: #064e3b; }
-    .day-cell.high { background: #2dd4bf; color: #042f2e; }
-    .day-cell.today { border-color: #0f172a; border-width: 2px; background: #ffffff; font-weight: 600; }
-    .day-cell.selected { outline: 3px solid #2563eb; outline-offset: 2px; }
-    .empty-cell { background: transparent; cursor: default; box-shadow: none; }
+    .day-cell.low { background: #c8e9fa; color: #024d72; }
+    .day-cell.medium { background: #7ac7f5; color: #022b41; }
+    .day-cell.high { background: #1f6aa5; color: white; }
+    .day-cell.today { border-color: #000; border-width: 3px; background: #fff7e0; }
+    .day-cell.selected { outline: 4px solid #004c99; outline-offset: 3px; }
+    .empty-cell { background: transparent; box-shadow: none; }
 
+    /* editor panel — very distinct */
     .editor-panel {
-      background: #ffffff;
-      border-radius: 30px;
-      padding: 22px;
-      margin: 20px 0 12px;
-      border: 1px solid #e9eef3;
+      background: #e7f0fc;
+      border-radius: 40px;
+      padding: 26px 22px;
+      margin: 16px 0 22px;
+      border: 3px solid #3478b0;
+      box-shadow: 0 18px 25px -10px #264e73;
     }
     .all-records {
-      background: #ffffff;
-      border-radius: 30px;
-      padding: 18px;
-      font-size: 0.95rem;
-      max-height: 400px;
+      background: #fefefe;
+      border-radius: 36px;
+      padding: 22px;
+      max-height: 420px;
       overflow-y: auto;
-      border: 1px solid #e2e8f0;
+      border: 2px solid #85b9e6;
     }
     .record-item {
-      padding: 12px 6px;
-      border-bottom: 1px solid #eef2f6;
+      background: #f0f8ff;
+      border-radius: 30px;
+      padding: 16px;
+      margin-bottom: 12px;
     }
-    .flex {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .gap { gap: 8px; }
-    .mt-3 { margin-top: 16px; }
-    .mb-1 { margin-bottom: 6px; }
-    .text-sm { font-size: 0.9rem; color: #334155; }
-    .text-xs { font-size: 0.75rem; color: #64748b; }
+    .flex { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .mt-3 { margin-top: 18px; }
+    .text-sm { font-size: 0.95rem; color: #0d3e5e; font-weight: 500; }
   </style>
 </head>
 <body>
-  <h1>🧘 Meditation</h1>
-  <div class="sub">mindful minutes · local only</div>
+  <h1>🧘 MEDITATION</h1>
+  <div class="sub">tap any day — edit minutes / notes</div>
 
-  <!-- quick add -->
+  <!-- TODAY ADD (remains) -->
   <div class="card">
-    <div class="card-header">
-      <span>➕ Add session today</span>
-    </div>
     <div class="row">
-      <input type="number" id="todayMinutes" placeholder="minutes" min="1" value="10" style="flex:2;">
-      <button id="addTodayBtn" style="flex:1;">Add</button>
+      <input type="number" id="todayMinutes" value="12" placeholder="minutes" min="1" style="flex:3;">
+      <button id="addTodayBtn" style="flex:2;">➕ ADD TODAY</button>
     </div>
   </div>
 
-  <!-- stats + streak + month total -->
-  <div class="card" style="padding: 16px 18px;">
-    <div class="flex" style="justify-content: space-between; width: 100%;">
-      <span class="stat-badge" id="streakDisplay">⚡ 0 days</span>
-      <span class="stat-badge" id="monthTotalDisplay">📅 0 min</span>
+  <!-- STREAK + MONTH TOTAL (big badges) -->
+  <div class="card" style="padding: 16px 20px;">
+    <div class="flex" style="justify-content: space-between;">
+      <span class="badge" id="streakDisplay">⚡ 0 days</span>
+      <span class="badge" id="monthTotalDisplay">📅 0 min</span>
     </div>
   </div>
 
-  <!-- calendar with month navigation -->
-  <div class="card" style="padding-bottom: 8px;">
+  <!-- MONTH NAVIGATION — NEW FEATURE (unmissable) -->
+  <div class="card" style="padding: 14px 18px;">
     <div class="month-nav">
-      <button class="small" id="prevMonthBtn">← Prev</button>
-      <span id="monthYearDisplay">May 2025</span>
-      <button class="small" id="nextMonthBtn">Next →</button>
+      <button class="small" id="prevMonthBtn">◀ PREV</button>
+      <span id="monthYearDisplay">MAY 2025</span>
+      <button class="small" id="nextMonthBtn">NEXT ▶</button>
     </div>
-    <div class="calendar-grid" id="calendarGrid">
-      <!-- weekdays + days injected -->
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-top: 12px;">
-      <button class="small" id="viewAllBtn">📋 All records</button>
-      <button class="small" id="exportCsvBtn">⬇️ Export CSV</button>
+
+    <!-- calendar grid injected -->
+    <div class="calendar-grid" id="calendarGrid"></div>
+
+    <!-- action buttons: all records & export -->
+    <div class="flex" style="justify-content: space-between; margin-top: 18px;">
+      <button class="small" id="viewAllBtn">📋 ALL RECORDS</button>
+      <button class="small" id="exportCsvBtn">⬇️ EXPORT CSV</button>
     </div>
   </div>
 
-  <!-- dynamic editor + all data container -->
+  <!-- EDITOR PANEL appears only when a day is tapped (obvious new area) -->
   <div id="editorContainer"></div>
+
+  <!-- ALL DATA / RECORDS container -->
   <div id="allDataContainer"></div>
 
   <script>
     (function() {
-      // ----- data & state -----
+      // ----------------------------------------------
+      // data & state
       let data = JSON.parse(localStorage.getItem('meditationData')) || {};
       let currentYear = new Date().getFullYear();
       let currentMonth = new Date().getMonth();  // 0-11
       let selectedDateKey = null;
 
-      // ----- helpers (local date, no UTC shift) -----
-      function formatDateLocal(year, month, day) {
+      // helpers (local date, no UTC)
+      function formatLocal(year, month, day) {
         return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       }
-
       function todayKey() {
         const d = new Date();
-        return formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
+        return formatLocal(d.getFullYear(), d.getMonth(), d.getDate());
       }
 
       // persist
-      function saveData() {
+      function save() {
         localStorage.setItem('meditationData', JSON.stringify(data));
         renderAll();
       }
 
-      // ----- streak (current streak up to today) -----
-      function calculateStreak() {
-        let streak = 0;
+      // streak (current)
+      function streak() {
+        let s = 0;
         let d = new Date();
         while (true) {
-          const key = formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
-          if (data[key] && (data[key].minutes || 0) > 0) {
-            streak++;
-            d.setDate(d.getDate() - 1);
-          } else break;
+          const key = formatLocal(d.getFullYear(), d.getMonth(), d.getDate());
+          if (data[key] && (data[key].minutes || 0) > 0) { s++; d.setDate(d.getDate()-1); }
+          else break;
         }
-        return streak;
+        return s;
       }
 
-      // ----- monthly total (based on currentMonth/currentYear) -----
-      function monthlyTotal() {
+      // monthly total (based on current view)
+      function monthTotal() {
         let total = 0;
-        Object.entries(data).forEach(([key, entry]) => {
+        Object.entries(data).forEach(([key, e]) => {
           const [y, m] = key.split('-').map(Number);
-          if (y === currentYear && m-1 === currentMonth) {
-            total += entry.minutes || 0;
-          }
+          if (y === currentYear && m-1 === currentMonth) total += e.minutes || 0;
         });
         return total;
       }
 
-      // ----- render stats -----
-      function updateStats() {
-        document.getElementById('streakDisplay').innerText = `⚡ ${calculateStreak()} day streak`;
-        document.getElementById('monthTotalDisplay').innerText = `📅 ${monthlyTotal()} min`;
-      }
-
-      // ----- calendar grid -----
+      // render calendar
       function renderCalendar() {
         const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         document.getElementById('monthYearDisplay').innerText = `${monthNames[currentMonth]} ${currentYear}`;
 
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();   // 0 = Sunday
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-        const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0 sun
+        const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
         let html = '';
-        weekdays.forEach(w => html += `<div class="weekday">${w}</div>`);
+        ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(w => html += `<div class="weekday">${w}</div>`);
+        for (let i=0; i<firstDay; i++) html += `<div class="empty-cell"></div>`;
 
-        // empty cells before 1st
-        for (let i = 0; i < firstDay; i++) {
-          html += `<div class="empty-cell"></div>`;
-        }
-
-        for (let d = 1; d <= daysInMonth; d++) {
-          const key = formatDateLocal(currentYear, currentMonth, d);
+        for (let d=1; d<=daysInMonth; d++) {
+          const key = formatLocal(currentYear, currentMonth, d);
           const entry = data[key];
-          let cellClass = 'day-cell';
+          let cls = 'day-cell';
           if (entry && entry.minutes) {
-            const m = entry.minutes;
-            if (m < 10) cellClass += ' low';
-            else if (m < 30) cellClass += ' medium';
-            else cellClass += ' high';
+            if (entry.minutes < 10) cls += ' low';
+            else if (entry.minutes < 30) cls += ' medium';
+            else cls += ' high';
           }
-          if (key === todayKey()) cellClass += ' today';
-          if (key === selectedDateKey) cellClass += ' selected';
-
-          html += `<div class="${cellClass}" data-key="${key}" data-day="${d}">${d}</div>`;
+          if (key === todayKey()) cls += ' today';
+          if (key === selectedDateKey) cls += ' selected';
+          html += `<div class="${cls}" data-key="${key}" data-day="${d}">${d}</div>`;
         }
-
         document.getElementById('calendarGrid').innerHTML = html;
-
-        // attach click listeners to day cells (skip empty cells)
         document.querySelectorAll('.day-cell').forEach(cell => {
-          cell.addEventListener('click', (e) => {
+          cell.addEventListener('click', () => {
             const key = cell.dataset.key;
             if (!key) return;
-            // remove selected from others
             document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('selected'));
             cell.classList.add('selected');
             selectedDateKey = key;
-            openEditorForKey(key);
+            openEditor(key);
           });
         });
       }
 
-      // ----- open editor for given key -----
-      function openEditorForKey(key) {
-        const entry = data[key] || { minutes: 0, sessions: 0, notes: '' };
+      // open editor (NEW feature clearly visible)
+      function openEditor(key) {
+        const entry = data[key] || { minutes:0, sessions:0, notes:'' };
         const container = document.getElementById('editorContainer');
         container.innerHTML = `
           <div class="editor-panel">
-            <h3 style="margin-bottom: 10px;">✏️ ${key}</h3>
-            <label class="text-sm">minutes</label>
-            <input type="number" id="editMinutes" value="${entry.minutes || 0}" min="0" step="1">
-            <label class="text-sm mt-3">sessions (count)</label>
-            <input type="number" id="editSessions" value="${entry.sessions || 0}" min="0" step="1">
-            <label class="text-sm mt-3">notes</label>
+            <h2 style="margin-bottom: 14px; color:#0b2b44;">✏️ EDIT ${key}</h2>
+            <label class="text-sm">🧘 minutes</label>
+            <input type="number" id="editMinutes" value="${entry.minutes || 0}" min="0">
+            <label class="text-sm mt-3">🔁 sessions count</label>
+            <input type="number" id="editSessions" value="${entry.sessions || 0}" min="0">
+            <label class="text-sm mt-3">📝 notes</label>
             <textarea id="editNotes" rows="2">${entry.notes || ''}</textarea>
-            <div class="flex gap mt-3">
-              <button id="saveEditBtn">💾 Save</button>
-              <button class="danger" id="deleteDayBtn">🗑️ Delete</button>
-              <button class="small" id="closeEditorBtn">Cancel</button>
+            <div class="flex mt-3">
+              <button id="saveEditBtn">💾 SAVE CHANGES</button>
+              <button class="danger" id="deleteDayBtn">🗑️ DELETE DAY</button>
+              <button class="small" id="closeEditorBtn">CLOSE</button>
             </div>
           </div>
         `;
-        document.getElementById('saveEditBtn').addEventListener('click', () => saveEdit(key));
-        document.getElementById('deleteDayBtn').addEventListener('click', () => deleteDay(key));
+        document.getElementById('saveEditBtn').addEventListener('click', () => { saveEdit(key); });
+        document.getElementById('deleteDayBtn').addEventListener('click', () => { deleteDay(key); });
         document.getElementById('closeEditorBtn').addEventListener('click', () => {
           container.innerHTML = '';
           selectedDateKey = null;
@@ -368,7 +341,7 @@
         const sessions = parseInt(document.getElementById('editSessions').value) || 0;
         const notes = document.getElementById('editNotes').value;
         data[key] = { minutes, sessions, notes };
-        saveData();
+        save();
         document.getElementById('editorContainer').innerHTML = '';
         selectedDateKey = key; // keep selection
       }
@@ -377,111 +350,81 @@
         delete data[key];
         if (selectedDateKey === key) selectedDateKey = null;
         document.getElementById('editorContainer').innerHTML = '';
-        saveData();
+        save();
       }
 
-      // ----- add today -----
+      // add today
       function addToday() {
-        const input = document.getElementById('todayMinutes');
-        let minutes = parseInt(input.value);
-        if (isNaN(minutes) || minutes <= 0) minutes = 1;
+        const inp = document.getElementById('todayMinutes');
+        let m = parseInt(inp.value);
+        if (isNaN(m) || m<1) m = 5;
         const key = todayKey();
         if (!data[key]) data[key] = { minutes:0, sessions:0, notes:'' };
-        data[key].minutes = (data[key].minutes || 0) + minutes;
-        data[key].sessions = (data[key].sessions || 0) + 1;
-        input.value = '';
-        saveData();
-        // if today visible in calendar, update
+        data[key].minutes += m;
+        data[key].sessions += 1;
+        inp.value = '';
+        save();
       }
 
-      // ----- show all records sorted (View All) -----
-      function showAllRecords() {
+      // show all records (view all)
+      function showAll() {
         const container = document.getElementById('allDataContainer');
         const sorted = Object.keys(data).sort().reverse();
-        if (sorted.length === 0) {
-          container.innerHTML = '<div class="all-records">✨ No entries yet.</div>';
-          return;
-        }
-        let html = '<div class="all-records"><h3 style="margin:0 0 10px;">📖 all entries</h3>';
+        if (sorted.length===0) { container.innerHTML = '<div class="all-records">✨ no entries</div>'; return; }
+        let html = '<div class="all-records"><h2 style="margin-bottom:14px;">📋 ALL RECORDS</h2>';
         sorted.forEach(date => {
           const e = data[date];
-          html += `<div class="record-item"><strong>${date}</strong> · ${e.minutes || 0} min · ${e.sessions || 0} session(s)<br>`;
-          html += `<span class="text-xs">📝 ${e.notes ? e.notes : '—'}</span></div>`;
+          html += `<div class="record-item"><strong>${date}</strong> · ${e.minutes} min · ${e.sessions} sess<br>📝 ${e.notes || '—'}</div>`;
         });
         html += '</div>';
         container.innerHTML = html;
       }
 
-      // ----- export CSV -----
+      // export CSV
       function exportCSV() {
-        const headers = ['Date','Minutes','Sessions','Notes'];
-        const rows = [headers];
+        const rows = [['Date','Minutes','Sessions','Notes']];
         Object.keys(data).sort().forEach(date => {
           const e = data[date];
           rows.push([date, e.minutes||0, e.sessions||0, `"${(e.notes||'').replace(/"/g,'""')}"`]);
         });
-        const csv = rows.map(r => r.join(',')).join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
+        const csv = rows.map(r=>r.join(',')).join('\n');
+        const blob = new Blob([csv],{type:'text/csv'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `meditation_${currentYear}-${currentMonth+1}.csv`;
         a.click();
-        URL.revokeObjectURL(a.href);
       }
 
-      // ----- clear allData container when switching months, etc (optional)-----
-      function hideAllContainer() {
-        document.getElementById('allDataContainer').innerHTML = '';
-      }
+      // hide all container when month changes (optional)
+      function hideAll() { document.getElementById('allDataContainer').innerHTML = ''; }
 
-      // ----- master render -----
+      // main render
       function renderAll() {
-        updateStats();
+        document.getElementById('streakDisplay').innerText = `⚡ ${streak()} day streak`;
+        document.getElementById('monthTotalDisplay').innerText = `📅 ${monthTotal()} min`;
         renderCalendar();
-
-        // if selectedDateKey still exists, keep editor open? but we can preserve only if key exists in data
+        // re-open editor if needed
         if (selectedDateKey) {
-          if (data[selectedDateKey]) {
-            openEditorForKey(selectedDateKey);
-          } else {
-            // key no longer in data -> close editor
-            document.getElementById('editorContainer').innerHTML = '';
-            selectedDateKey = null;
-          }
-        } else {
-          document.getElementById('editorContainer').innerHTML = '';
-        }
+          if (data[selectedDateKey]) openEditor(selectedDateKey);
+          else { document.getElementById('editorContainer').innerHTML = ''; selectedDateKey = null; }
+        } else document.getElementById('editorContainer').innerHTML = '';
       }
 
-      // ----- month navigation -----
-      document.getElementById('prevMonthBtn').addEventListener('click', () => {
-        currentMonth--;
-        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-        hideAllContainer();
-        renderAll();
-      });
-      document.getElementById('nextMonthBtn').addEventListener('click', () => {
-        currentMonth++;
-        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-        hideAllContainer();
-        renderAll();
-      });
-
+      // event listeners
       document.getElementById('addTodayBtn').addEventListener('click', addToday);
-
-      document.getElementById('viewAllBtn').addEventListener('click', () => {
-        showAllRecords();
+      document.getElementById('prevMonthBtn').addEventListener('click', ()=>{
+        currentMonth--; if (currentMonth<0) { currentMonth=11; currentYear--; }
+        hideAll(); renderAll();
       });
-
-      document.getElementById('exportCsvBtn').addEventListener('click', () => {
-        exportCSV();
+      document.getElementById('nextMonthBtn').addEventListener('click', ()=>{
+        currentMonth++; if (currentMonth>11) { currentMonth=0; currentYear++; }
+        hideAll(); renderAll();
       });
+      document.getElementById('viewAllBtn').addEventListener('click', showAll);
+      document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
 
-      // init
+      // initial render
       renderAll();
-
-      // extra: if user clicks outside, but we keep as is
-      window.todayKey = todayKey; // not needed
     })();
   </script>
 </body>
